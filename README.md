@@ -23,7 +23,7 @@ To start the development server for the file sharing application, follow these s
 
 Before proceeding, ensure that you have the following installed on your machine:
 
--   [Node.js](https://nodejs.org/) (version 12 or above)
+-   [Node.js](https://nodejs.org/) (version 18 or above)
 -   [npm](https://www.npmjs.com/) (or [Yarn](https://yarnpkg.com/))
 
 ### Setup Instructions

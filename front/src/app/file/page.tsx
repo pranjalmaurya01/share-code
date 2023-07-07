@@ -16,10 +16,12 @@ export default function ShareFile() {
     isAdmin: null | boolean
     isLoading: boolean
     roomData: roomDataI
+    inValidCode: boolean
   }>({
     isAdmin: null,
     isLoading: false,
     roomData: {users: [], admins: []},
+    inValidCode: false,
   })
   const router = useRouter()
   const params = useSearchParams()
@@ -31,8 +33,12 @@ export default function ShareFile() {
   const roomId = params.get('room_id')
 
   useEffect(() => {
-    if (!roomId) {
+    if (socket && !roomId) {
       updateState({isAdmin: null})
+      socket.on(constants.EVENTS.LEAVE_ROOM, () => {
+        console.log('LEFT ALL ROOMS')
+        updateState({inValidCode: true})
+      })
     }
   }, [roomId])
 
@@ -51,16 +57,12 @@ export default function ShareFile() {
             updateState({isAdmin, roomData})
           }
         )
-        socket.on(
-          constants.EVENTS.GET_USERS,
-          (roomData: {admins: string[]; users: string[]}) => {
-            updateState({roomData})
-            console.log(roomData)
-          }
-        )
-        socket.on(constants.EVENTS.GET_FILE, (files: any) => {
-          console.log(files)
-          setState((prev) => ({...prev, files}))
+        socket.on(constants.EVENTS.GET_USERS, (roomData: roomDataI) => {
+          updateState({roomData})
+          console.log(roomData)
+        })
+        socket.on(constants.EVENTS.INVALID_ROOM, () => {
+          updateState({inValidCode: true})
         })
       }
       if (roomId) {
@@ -115,10 +117,21 @@ export default function ShareFile() {
             const room = document.forms.roomForm?.room
               .value as unknown as string
             if (socket)
-              socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM, room)
+              socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM, room, true)
           }}
         >
-          <Input placeholder="Join Room" name="room" />
+          <Input
+            placeholder="Join Room"
+            name="room"
+            onChange={() => {
+              updateState({inValidCode: false})
+            }}
+          />
+          {state.inValidCode && (
+            <p className="mt-1 ml-1 text-slate-400">
+              Please Enter Valid Room Code !
+            </p>
+          )}
         </form>
       </div>
     )
