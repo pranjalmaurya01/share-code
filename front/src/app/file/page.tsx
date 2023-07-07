@@ -53,13 +53,11 @@ export default function ShareFile() {
           constants.EVENTS.ROOM_JOINED,
           (room_id: string, roomData: any, isAdmin: boolean) => {
             router.push(`?room_id=${room_id}`)
-            console.log(roomData)
             updateState({isAdmin, roomData})
           }
         )
         socket.on(constants.EVENTS.GET_USERS, (roomData: roomDataI) => {
           updateState({roomData})
-          console.log(roomData)
         })
         socket.on(constants.EVENTS.INVALID_ROOM, () => {
           updateState({inValidCode: true})

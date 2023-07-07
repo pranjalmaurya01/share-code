@@ -1,15 +1,14 @@
-import { Redis } from '@upstash/redis';
+import {Redis} from '@upstash/redis';
 import dotenv from 'dotenv';
-import { Server } from 'socket.io';
+import {Server} from 'socket.io';
 
-const io = new Server({ cors: { origin: '*' } });
+const io = new Server({cors: {origin: '*'}});
 dotenv.config();
 
 const redis = new Redis({
 	url: 'https://apn1-wise-kit-33801.upstash.io',
-	token: "" + process.env.REDIS_TOKEN,
+	token: '' + process.env.REDIS_TOKEN,
 });
-
 
 // {room_id: {users:[]},admins:[]}
 let roomData = {};
@@ -19,10 +18,10 @@ let roomData = {};
 		const rd = await redis.get('roomData');
 		if (rd) {
 			roomData = rd;
-			console.log('Redis data loaded')
+			console.log('Redis data loaded');
 		}
 	} catch (e) {
-		console.log("unable to connect to redis")
+		console.log('unable to connect to redis');
 	}
 })();
 
@@ -38,24 +37,23 @@ const events = {
 	ROOM_JOINED: 'ROOM_JOINED',
 	MAKE_ADMIN: 'MAKE_ADMIN',
 	LEAVE_ROOM: 'LEAVE_ROOM',
-	INVALID_ROOM: 'INVALID_ROOM'
+	INVALID_ROOM: 'INVALID_ROOM',
 };
 
 const generateRandomId = () => (Math.random() + 1).toString(36).substring(2);
 
 io.on(events.CONNECTION, async (socket) => {
 	socket.on(events.GENERATE_AND_JOIN_ROOM, async (room_id, isRequest) => {
-
 		if ((!room_id || !roomData[room_id]) && isRequest) {
-			io.to(socket.id).emit(events.INVALID_ROOM)
-			return
+			io.to(socket.id).emit(events.INVALID_ROOM);
+			return;
 		}
 
 		let isAdmin = true;
 		let currentRoom = '';
 		if ((!room_id || !roomData[room_id]) && !isRequest) {
 			currentRoom = generateRandomId();
-			roomData[currentRoom] = { admins: [socket.id], users: [] };
+			roomData[currentRoom] = {admins: [socket.id], users: []};
 		} else {
 			currentRoom = room_id;
 			if (roomData[currentRoom].admins.length === 0) {
@@ -75,7 +73,9 @@ io.on(events.CONNECTION, async (socket) => {
 			roomData[currentRoom],
 			isAdmin
 		);
-		io.sockets.in(currentRoom).emit(events.GET_USERS, roomData[currentRoom]);
+		io.sockets
+			.in(currentRoom)
+			.emit(events.GET_USERS, roomData[currentRoom]);
 		await redis.set('roomData', roomData);
 	});
 
@@ -109,26 +109,6 @@ io.on(events.CONNECTION, async (socket) => {
 		}
 	});
 
-	socket.on(events.JOIN_ROOM, (room) => {
-		if (room) {
-			roomData[room] = roomData[room]
-				? {
-					admins: roomData[room].admins,
-					users: [socket.id],
-				}
-				: { admins: [socket.id], users: [] };
-
-			socket.join(room);
-			socket.to(room).emit(events.GET_USERS, roomData[room]);
-			io.to(socket.id).emit(
-				events.ROOM_JOINED,
-				room,
-				roomData[room]
-				// isAdmin
-			);
-		}
-	});
-
 	socket.on(events.FILE_UPLOAD, (files, room) => {
 		socket.to(room).emit(events.GET_FILE, files);
 	});
@@ -141,8 +121,11 @@ io.on(events.CONNECTION, async (socket) => {
 			roomData[room].admins = roomData[room].admins.filter(
 				(user) => user !== socket.id
 			);
-			if (roomData[room].users.length === 0 && roomData[room].admins.length === 0) {
-				delete roomData[room]
+			if (
+				roomData[room].users.length === 0 &&
+				roomData[room].admins.length === 0
+			) {
+				delete roomData[room];
 			} else {
 				io.sockets.in(room).emit(events.GET_USERS, roomData[room]);
 			}

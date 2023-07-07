@@ -8,15 +8,17 @@ const UserAdminList = ({
   socket,
   room_id,
   isAdmin,
+  className,
 }: {
   room_id: string
   socket: any
   admins: string[]
   users: string[]
   isAdmin?: boolean
+  className?: string
 }) => {
   return (
-    <div className="ml-5 m-1">
+    <div className={`ml-5 m-1 ${className}`}>
       <h3 className="text-xl">ADMINS</h3>
       <ul className="max-w-md space-y-1 text-gray-500 list-disc list-inside">
         {admins.length > 0 ? (

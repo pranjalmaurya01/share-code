@@ -122,7 +122,7 @@ export default function UploadFiles({
           <div className="flex">
             <div className="flex justify-end mb-2">
               {state.copied ? (
-                <p className="py-2 px-1 text-green-500">Room Id Copied</p>
+                <p className="py-2 px-1 text-gray-300">Room Id Copied</p>
               ) : (
                 <Button variant="outline" onClick={(e) => e.stopPropagation()}>
                   <CopyToClipboard

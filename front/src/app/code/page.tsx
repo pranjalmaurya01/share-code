@@ -1,91 +1,157 @@
 'use client'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
+import constants from '@/constants'
 import {useRouter, useSearchParams} from 'next/navigation'
 import {useEffect, useState} from 'react'
+import {io} from 'socket.io-client'
 import CodeEditor from './components/CodeEditor'
 
-export default function ShareCode() {
+let socket: any
+export type roomDataI = {users: string[]; admins: string[]}
+
+export default function ShareFile() {
+  const [state, setState] = useState<{
+    isAdmin: null | boolean
+    isLoading: boolean
+    roomData: roomDataI
+    inValidCode: boolean
+  }>({
+    isAdmin: null,
+    isLoading: false,
+    roomData: {users: [], admins: []},
+    inValidCode: false,
+  })
   const router = useRouter()
   const params = useSearchParams()
-  const [state, setState] = useState<{
-    isSender: null | boolean
-    roomId: null | string
-  }>({
-    isSender: null,
-    roomId: null,
-  })
+
+  const updateState = (newValues: any) => {
+    setState((prev) => ({...prev, ...newValues}))
+  }
+
+  const roomId = params.get('room_id')
 
   useEffect(() => {
-    let type = params.get('type')
-    let room_id = params.get('room_id')
-    if (type) {
-      setState((prev) => ({
-        ...prev,
-        isSender: type === 'sender',
-      }))
+    if (socket && !roomId) {
+      updateState({isAdmin: null})
+      socket.on(constants.EVENTS.LEAVE_ROOM, () => {
+        console.log('LEFT ALL ROOMS')
+        updateState({inValidCode: true})
+      })
     }
-    if (type && type === 'receiver' && room_id !== undefined) {
-      setState((prev) => ({
-        ...prev,
-        roomId: room_id,
-      }))
-    }
-  }, [params])
+  }, [roomId])
 
-  return (
-    <>
-      {state.isSender === null ? (
-        <div className="flex justify-center items-center h-screen">
-          <Button
-            variant="link"
-            className="text-4xl"
-            onClick={() => {
-              router.push('/code?type=sender')
-              setState((prev) => ({...prev, isSender: true}))
-            }}
-          >
-            Sender
-          </Button>
-          <span className="text-5xl">&nbsp;/&nbsp;</span>
-          <Button
-            variant="link"
-            className="text-4xl"
-            onClick={() => {
-              router.push('/code?type=receiver')
-              setState((prev) => ({...prev, isSender: false}))
-            }}
-          >
-            Receiver
-          </Button>
-        </div>
-      ) : state.isSender ? (
-        <CodeEditor isSender={state.isSender} />
-      ) : state.roomId ? (
-        <CodeEditor isSender={state.isSender} room_id={state.roomId} />
-      ) : (
+  useEffect(() => {
+    ;(async () => {
+      if (!socket) {
+        socket = io(constants.baseUrl)
+        socket.on(constants.EVENTS.CONNECTION, () => {
+          console.log('connected')
+        })
+        socket.on(
+          constants.EVENTS.ROOM_JOINED,
+          (room_id: string, roomData: any, isAdmin: boolean) => {
+            router.push(`?room_id=${room_id}`)
+            console.log(roomData)
+            updateState({isAdmin, roomData})
+          }
+        )
+        socket.on(constants.EVENTS.GET_USERS, (roomData: roomDataI) => {
+          updateState({roomData})
+          console.log(roomData)
+        })
+        socket.on(constants.EVENTS.INVALID_ROOM, () => {
+          updateState({inValidCode: true})
+        })
+      }
+      if (roomId) {
+        socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM, roomId)
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  if (state.isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Generating New Room And Making You Admin</p>
+      </div>
+    )
+  }
+
+  if (state.isAdmin === null)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Button
+          variant="link"
+          className="text-4xl"
+          onClick={() => {
+            // setState((prev) => ({...prev, isAdmin: true}))
+            if (socket) socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM)
+          }}
+        >
+          Send
+        </Button>
+        <span className="text-5xl">&nbsp;/&nbsp;</span>
+        <Button
+          variant="link"
+          className="text-4xl"
+          onClick={() => {
+            updateState({isAdmin: false})
+          }}
+        >
+          Receive
+        </Button>
+      </div>
+    )
+
+  if (!state.isAdmin && !roomId) {
+    return (
+      <div className="flex justify-center items-center h-screen">
         <form
-          className="flex justify-center items-center h-screen"
-          name="room_form"
+          name="roomForm"
           onSubmit={(e) => {
             e.preventDefault()
             // @ts-expect-error
-            const roomId = document.forms.room_form?.room_id
+            const room = document.forms.roomForm?.room
               .value as unknown as string
-            setState((prev) => ({
-              ...prev,
-              roomId,
-            }))
-            router.push(`/code?type=receiver&room_id=${roomId}`)
+            if (socket)
+              socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM, room, true)
           }}
         >
           <Input
-            placeholder="Room ID"
-            className="mx-2 md:w-1/5"
-            name="room_id"
+            placeholder="Join Room"
+            name="room"
+            onChange={() => {
+              updateState({inValidCode: false})
+            }}
           />
+          {state.inValidCode && (
+            <p className="mt-1 ml-1 text-slate-400">
+              Please Enter Valid Room Code !
+            </p>
+          )}
         </form>
-      )}
-    </>
-  )
+      </div>
+    )
+  }
+
+  if (state.isAdmin && roomId) {
+    return (
+      <CodeEditor
+        socket={socket}
+        roomId={roomId}
+        roomData={state.roomData}
+        isAdmin
+      />
+    )
+  }
+
+  if (!state.isAdmin && roomId) {
+    return (
+      <CodeEditor socket={socket} roomId={roomId} roomData={state.roomData} />
+    )
+  }
+
+  return null
 }

@@ -1,23 +1,23 @@
 'use client'
 
-import {Button} from '@/components/ui/button'
-import {Input} from '@/components/ui/input'
+import UserAdminList from '@/app/file/components/UserAdminList'
+import {roomDataI} from '@/app/file/page'
 import constants from '@/constants'
-import {generateRandomId} from '@/lib/utils'
 import {Editor} from '@monaco-editor/react'
 import {useEffect, useState} from 'react'
-import {CopyToClipboard} from 'react-copy-to-clipboard'
-import {io} from 'socket.io-client'
-
-const roomId = generateRandomId()
-let socket: any
+import CopyButton from './CopyButton'
+import FilesList from './FilesList'
 
 export default function CodeEditor({
-  isSender,
-  room_id,
+  isAdmin,
+  roomId,
+  socket,
+  roomData,
 }: {
-  isSender: boolean
-  room_id?: string
+  isAdmin?: boolean
+  roomId: string
+  socket: any
+  roomData: roomDataI
 }) {
   const [state, setState] = useState<{
     copied: boolean
@@ -31,8 +31,6 @@ export default function CodeEditor({
 
   useEffect(() => {
     ;(async () => {
-      socket = io(constants.baseUrl)
-
       socket.on(constants.EVENTS.CONNECTION, () => {
         console.log('connected')
       })
@@ -41,9 +39,6 @@ export default function CodeEditor({
           setState((prev) => ({...prev, code: e}))
         }
       })
-      if (room_id) {
-        socket.emit(constants.EVENTS.JOIN_ROOM, room_id)
-      }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -59,7 +54,7 @@ export default function CodeEditor({
   }, [state.copied])
 
   const onCodeChange = (e: string | undefined) => {
-    if (e) {
+    if (e && isAdmin) {
       setState((prev) => {
         prev.code[prev.selectedFile].value = e
         socket.emit(constants.EVENTS.ON_CODE_CHANGE, prev.code, roomId)
@@ -71,92 +66,58 @@ export default function CodeEditor({
   const selectedCode = state.code[state.selectedFile].value
 
   return (
-    <div className="flex m-2 flex-col">
-      {isSender ? (
-        <div className="flex justify-end mb-2">
-          {state.copied ? (
-            <p className="py-2 px-1 text-green-500">Room Id Copied</p>
-          ) : (
-            <CopyToClipboard
-              text={roomId}
-              onCopy={() => setState((prev) => ({...prev, copied: true}))}
-            >
-              <Button variant="outline">Copy Room ID</Button>
-            </CopyToClipboard>
-          )}
-        </div>
-      ) : (
-        <div className="flex justify-end mb-2">
-          {state.copied ? (
-            <p className="py-2 px-1 text-green-500">copied to clipboard</p>
-          ) : (
-            <CopyToClipboard
-              text={selectedCode}
-              onCopy={() => setState((prev) => ({...prev, copied: true}))}
-            >
-              <Button variant="outline">Copy Code</Button>
-            </CopyToClipboard>
-          )}
-        </div>
-      )}
-
+    <div className="flex flex-col overflow-hidden">
       <div className="flex">
-        <div>
-          <h3 className="text-xl m-1">Files</h3>
-          <br />
-          <ul className="max-w-md space-y-1 text-gray-500 list-disc list-inside">
-            {state.code.map((e, i) => (
-              <li
-                className={`hover:cursor-pointer ${
-                  state.selectedFile === i && 'text-gray-300'
-                }`}
-                key={i}
-                onClick={() =>
-                  setState((prev) => ({
-                    ...prev,
-                    selectedFile: i,
-                  }))
-                }
-              >
-                {e.file}
-              </li>
-            ))}
-          </ul>
-          <div className="m-2">
-            <form
-              name="fileForm"
-              onSubmit={(e) => {
-                e.preventDefault()
-                // @ts-expect-error
-                const fileName = document.forms.fileForm?.fileName
-                  .value as unknown as string
-                // @ts-expect-error
-                document.getElementById('fileName').value = ''
-                setState((prev) => {
-                  prev.code = [...prev.code, {file: fileName, value: ''}]
-                  socket.emit(
-                    constants.EVENTS.ON_CODE_CHANGE,
-                    prev.code,
-                    roomId
-                  )
-                  return {
-                    ...prev,
-                  }
-                })
+        <div className="flex flex-col justify-between">
+          <div>
+            <FilesList
+              isAdmin={!!isAdmin}
+              selectedFile={state.selectedFile}
+              code={state.code}
+              onSubmit={(fileName: string) => {
+                const updatedCode = [...state.code, {file: fileName, value: ''}]
+                setState((prev) => ({
+                  ...prev,
+                  code: updatedCode,
+                }))
+                socket.emit(
+                  constants.EVENTS.ON_CODE_CHANGE,
+                  updatedCode,
+                  roomId
+                )
               }}
-            >
-              <Input
-                placeholder="Create New File"
-                name="fileName"
-                id="fileName"
+              onFileSelect={(i: number) => {
+                setState((prev) => ({
+                  ...prev,
+                  selectedFile: i,
+                }))
+              }}
+            />
+          </div>
+          <div className="">
+            <UserAdminList
+              className="!ml-0 truncate pr-2"
+              admins={roomData.admins}
+              users={roomData.users}
+              room_id={roomId}
+              socket={socket}
+              isAdmin={isAdmin}
+            />
+            <div className="mt-5">
+              <CopyButton
+                isAdmin={!!isAdmin}
+                roomId={roomId}
+                selectedCode={selectedCode}
+                selectedFile={state.code[state.selectedFile].file}
               />
-            </form>
+            </div>
           </div>
         </div>
         <Editor
+          options={{readOnly: !isAdmin}}
           value={selectedCode}
           theme="vs-dark"
-          height="90vh"
+          height="100vh"
           onChange={(e) => onCodeChange(e)}
           defaultLanguage="javascript"
         />
