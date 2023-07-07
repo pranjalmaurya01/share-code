@@ -31,7 +31,8 @@
 				"eg2.vscode-npm-script",
 				"bradlc.vscode-tailwindcss",
 				"ms-vscode.vscode-typescript-tslint-plugin",
-				"formulahendry.auto-rename-tag"
+				"formulahendry.auto-rename-tag",
+				"shd101wyy.markdown-preview-enhanced"
 			]
 		}
 	}
