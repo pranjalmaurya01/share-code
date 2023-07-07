@@ -14,6 +14,10 @@ const constants = {
     FILE_UPLOAD: 'file-upload',
     GET_FILE: 'get-file',
     GET_USERS: 'get-users',
+    GENERATE_AND_JOIN_ROOM: 'GENERATE_AND_JOIN_ROOM',
+    GET_ROOM_ID: 'GET_ROOM_ID',
+    ROOM_JOINED: 'ROOM_JOINED',
+    MAKE_ADMIN: 'MAKE_ADMIN',
   },
   ALLOWED_FILE_FORMATS:
     '.jpg,.jpeg,.png,.gif,.svg,.mp3,.wav,.mp4,.avi,.pdf,.txt,.html,.css,.js,.jsx,.tsx,.py,.json,',
