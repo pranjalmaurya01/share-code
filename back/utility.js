@@ -6,6 +6,7 @@ export async function GENERATE_AND_JOIN_ROOM(
 	redis,
 	socket,
 	io,
+	type,
 	roomData,
 	room_id,
 	isRequest
@@ -15,11 +16,16 @@ export async function GENERATE_AND_JOIN_ROOM(
 		return;
 	}
 
+	if (room_id && roomData[room_id] && roomData[room_id].type !== type) {
+		io.to(socket.id).emit(events.INVALID_ROOM_TYPE, room_id);
+		return;
+	}
+
 	let isAdmin = true;
 	let currentRoom = '';
 	if ((!room_id || !roomData[room_id]) && !isRequest) {
 		currentRoom = generateRandomId();
-		roomData[currentRoom] = {admins: [socket.id], users: []};
+		roomData[currentRoom] = {admins: [socket.id], users: [], type};
 	} else {
 		currentRoom = room_id;
 		if (roomData[currentRoom].admins.length === 0) {

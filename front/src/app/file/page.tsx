@@ -1,4 +1,5 @@
 'use client'
+import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import constants from '@/constants'
@@ -15,6 +16,7 @@ export default function ShareFile() {
     isLoading: boolean
     roomData: roomDataI
     inValidCode: boolean
+    invalidRoomCode?: string
   }>({
     isAdmin: null,
     isLoading: false,
@@ -55,15 +57,55 @@ export default function ShareFile() {
         updateState({roomData})
       })
       socket.on(constants.EVENTS.INVALID_ROOM, () => {
-        updateState({inValidCode: true})
+        updateState({
+          inValidCode: true,
+          isLoading: false,
+        })
+      })
+      socket.on(constants.EVENTS.INVALID_ROOM_TYPE, (room_id: string) => {
+        updateState({
+          isLoading: false,
+          invalidRoomCode: room_id,
+        })
       })
       if (roomId) {
         updateState({isLoading: true})
-        socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM, roomId)
+        socket.emit(
+          constants.EVENTS.GENERATE_AND_JOIN_ROOM,
+          constants.TYPE.FILE,
+          roomId
+        )
       }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  if (state.invalidRoomCode) {
+    return (
+      <div className="flex w-screen h-screen justify-center items-center">
+        <div>
+          <Alert>
+            <AlertTitle className="text-xl">Wrong Room Type</AlertTitle>
+            <AlertDescription>
+              The room code ({state.invalidRoomCode}) you entered is a Code
+              Transfer Type
+            </AlertDescription>
+          </Alert>
+          <div className="flex justify-end mt-2">
+            <Button
+              className="!ml-0"
+              variant="secondary"
+              onClick={() => {
+                router.push(`/code?room_id=${state.invalidRoomCode}`)
+              }}
+            >
+              Redirect Me To File Transfer
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (state.isLoading) {
     return (
@@ -82,7 +124,10 @@ export default function ShareFile() {
           onClick={() => {
             if (socket) {
               updateState({isLoading: true})
-              socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM)
+              socket.emit(
+                constants.EVENTS.GENERATE_AND_JOIN_ROOM,
+                constants.TYPE.FILE
+              )
             }
           }}
         >
@@ -112,7 +157,12 @@ export default function ShareFile() {
             const room = document.forms.roomForm?.room
               .value as unknown as string
             if (socket)
-              socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM, room, true)
+              socket.emit(
+                constants.EVENTS.GENERATE_AND_JOIN_ROOM,
+                constants.TYPE.FILE,
+                room,
+                true
+              )
           }}
         >
           <Input

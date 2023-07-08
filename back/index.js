@@ -33,8 +33,16 @@ let roomData = {};
 })();
 
 io.on(events.CONNECTION, async (socket) => {
-	socket.on(events.GENERATE_AND_JOIN_ROOM, async (room_id, isRequest) =>
-		GENERATE_AND_JOIN_ROOM(redis, socket, io, roomData, room_id, isRequest)
+	socket.on(events.GENERATE_AND_JOIN_ROOM, async (type, room_id, isRequest) =>
+		GENERATE_AND_JOIN_ROOM(
+			redis,
+			socket,
+			io,
+			type,
+			roomData,
+			room_id,
+			isRequest
+		)
 	);
 
 	socket.on(events.LEAVE_ROOM, () => {
@@ -49,7 +57,6 @@ io.on(events.CONNECTION, async (socket) => {
 		socket.to(room).emit(events.GET_CHANGED_CODE, e);
 		if (save && roomData[room]) {
 			roomData[room].code = e;
-			console.log('save', roomData[room].code);
 			redis.set('roomData', roomData);
 		}
 	});
