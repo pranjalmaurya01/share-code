@@ -1,7 +1,9 @@
 'use client'
+import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Badge} from '@/components/ui/badge'
 import constants from '@/constants'
 import {roomDataI} from '@/constants/types'
+import {Terminal} from 'lucide-react'
 import {useRouter} from 'next/navigation'
 import {useEffect, useState} from 'react'
 import CopyButton from './CopyButton'
@@ -21,14 +23,32 @@ export default function UploadFiles({
   const [state, setState] = useState<{
     files: HTMLInputElement[]
     copied: boolean
+    showAlert: boolean
   }>({
     files: [],
     copied: false,
+    showAlert: false,
   })
 
   const getPhoto = () => {
     // @ts-expect-error
     const files = document.getElementById('upload_doc').files
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+
+      // Validate file type
+      if (!constants.ALLOWED_FILE_FORMATS.includes(file.type)) {
+        setState((prev) => ({...prev, showAlert: true}))
+        return
+      }
+
+      // Validate file size
+      if (file.size > constants.MAX_FILE_SIZE) {
+        setState((prev) => ({...prev, showAlert: true}))
+        return
+      }
+    }
 
     const filesData = [] as any
 
@@ -67,6 +87,16 @@ export default function UploadFiles({
     return () => timeout && clearTimeout(timeout)
   }, [state.copied])
 
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>
+    if (state.showAlert) {
+      timeout = setTimeout(() => {
+        setState((prev) => ({...prev, showAlert: false}))
+      }, 5000)
+    }
+    return () => timeout && clearTimeout(timeout)
+  }, [state.showAlert])
+
   return (
     <label htmlFor="upload_doc">
       <div className="flex w-full min-h-screen">
@@ -99,7 +129,7 @@ export default function UploadFiles({
           </Badge>
         </div>
         <input
-          accept={constants.ALLOWED_FILE_FORMATS}
+          accept={constants.ALLOWED_FILE_FORMATS_HTML}
           multiple
           id="upload_doc"
           type="file"
@@ -124,6 +154,20 @@ export default function UploadFiles({
           </div>
         </div>
       </div>
+      {state.showAlert && (
+        <Alert className="absolute top-1">
+          <Terminal className="h-4 w-4" />
+          <AlertTitle>Alert</AlertTitle>
+          <AlertDescription>
+            Allowed File Formats are
+            <span className="text-red-500 text-base">
+              {constants.ALLOWED_FILE_FORMATS_HTML}
+            </span>{' '}
+            only with max size of{' '}
+            <span className="text-red-500 text-base">1MB</span>
+          </AlertDescription>
+        </Alert>
+      )}
     </label>
   )
 }

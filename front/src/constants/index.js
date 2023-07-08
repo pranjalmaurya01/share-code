@@ -21,7 +21,29 @@ const constants = {
     MAKE_ADMIN: 'MAKE_ADMIN',
     INVALID_ROOM: 'INVALID_ROOM',
   },
-  ALLOWED_FILE_FORMATS:
+  ALLOWED_FILE_FORMATS_HTML:
     '.jpg,.jpeg,.png,.gif,.svg,.mp3,.wav,.mp4,.avi,.pdf,.txt,.html,.css,.js,.jsx,.tsx,.py,.json,',
+  ALLOWED_FILE_FORMATS: [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/svg+xml',
+    'audio/mp3',
+    'audio/wav',
+    'video/mp4',
+    'video/avi',
+    'application/pdf',
+    'text/plain',
+    'text/html',
+    'text/css',
+    'application/javascript',
+    'text/javascript',
+    'text/jsx',
+    'text/typescript',
+    'application/x-python',
+    'application/json',
+  ],
+  MAX_FILE_SIZE: 1 * 1024 * 1024,
 }
 export default constants
