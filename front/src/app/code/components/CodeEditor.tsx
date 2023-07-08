@@ -65,6 +65,10 @@ export default function CodeEditor({
 
   const selectedCode = state.code[state.selectedFile].value
 
+  function onBlur() {
+    socket.emit(constants.EVENTS.ON_CODE_CHANGE, state.code, roomId, true)
+  }
+
   return (
     <div className="flex flex-col overflow-hidden">
       <div className="flex">
@@ -83,7 +87,8 @@ export default function CodeEditor({
                 socket.emit(
                   constants.EVENTS.ON_CODE_CHANGE,
                   updatedCode,
-                  roomId
+                  roomId,
+                  true
                 )
               }}
               onFileSelect={(i: number) => {
@@ -113,14 +118,16 @@ export default function CodeEditor({
             </div>
           </div>
         </div>
-        <Editor
-          options={{readOnly: !isAdmin}}
-          value={selectedCode}
-          theme="vs-dark"
-          height="100vh"
-          onChange={(e) => onCodeChange(e)}
-          defaultLanguage="javascript"
-        />
+        <div onBlur={onBlur} className="w-full">
+          <Editor
+            options={{readOnly: !isAdmin}}
+            value={selectedCode}
+            theme="vs-dark"
+            height="100vh"
+            onChange={(e) => onCodeChange(e)}
+            defaultLanguage="javascript"
+          />
+        </div>
       </div>
     </div>
   )

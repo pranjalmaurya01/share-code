@@ -10,4 +10,10 @@ export const events = {
 	MAKE_ADMIN: 'MAKE_ADMIN',
 	LEAVE_ROOM: 'LEAVE_ROOM',
 	INVALID_ROOM: 'INVALID_ROOM',
+	INVALID_ROOM_TYPE: 'INVALID_ROOM_TYPE',
+};
+
+export const type = {
+	FILE: 'FILE',
+	CODE: 'CODE',
 };

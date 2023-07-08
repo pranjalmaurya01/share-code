@@ -1,4 +1,5 @@
 'use client'
+import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import constants from '@/constants'
@@ -8,13 +9,16 @@ import {useRouter, useSearchParams} from 'next/navigation'
 import {useEffect, useState} from 'react'
 import CodeEditor from './components/CodeEditor'
 
+interface stateI {
+  isAdmin: null | boolean
+  isLoading: boolean
+  roomData: roomDataI
+  inValidCode: boolean
+  invalidRoomCode?: string
+}
+
 export default function ShareFile() {
-  const [state, setState] = useState<{
-    isAdmin: null | boolean
-    isLoading: boolean
-    roomData: roomDataI
-    inValidCode: boolean
-  }>({
+  const [state, setState] = useState<stateI>({
     isAdmin: null,
     isLoading: false,
     roomData: {users: [], admins: []},
@@ -38,6 +42,7 @@ export default function ShareFile() {
         updateState({inValidCode: true})
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId])
 
   useEffect(() => {
@@ -46,17 +51,31 @@ export default function ShareFile() {
         constants.EVENTS.ROOM_JOINED,
         (room_id: string, roomData: any, isAdmin: boolean) => {
           router.push(`?room_id=${room_id}`)
-          updateState({isAdmin, roomData})
+          updateState({isAdmin, roomData, isLoading: false})
         }
       )
       socket.on(constants.EVENTS.GET_USERS, (roomData: roomDataI) => {
         updateState({roomData})
       })
       socket.on(constants.EVENTS.INVALID_ROOM, () => {
-        updateState({inValidCode: true})
+        updateState({
+          inValidCode: true,
+          isLoading: false,
+        })
+      })
+      socket.on(constants.EVENTS.INVALID_ROOM_TYPE, (room_id: string) => {
+        updateState({
+          isLoading: false,
+          invalidRoomCode: room_id,
+        })
       })
       if (roomId) {
-        socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM, roomId)
+        socket.emit(
+          constants.EVENTS.GENERATE_AND_JOIN_ROOM,
+          constants.TYPE.CODE,
+          roomId
+        )
+        updateState({isLoading: true})
       }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -65,7 +84,34 @@ export default function ShareFile() {
   if (state.isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p>Generating New Room And Making You Admin</p>
+        <p className="text-2xl">Joining Room</p>
+      </div>
+    )
+  }
+
+  if (state.invalidRoomCode) {
+    return (
+      <div className="flex w-screen h-screen justify-center items-center">
+        <div>
+          <Alert>
+            <AlertTitle className="text-xl">Wrong Room Type</AlertTitle>
+            <AlertDescription>
+              The room code ({state.invalidRoomCode}) you entered is a File
+              Transfer Type
+            </AlertDescription>
+          </Alert>
+          <div className="flex justify-end mt-2">
+            <Button
+              className="!ml-0"
+              variant="secondary"
+              onClick={() => {
+                router.push(`/file?room_id=${state.invalidRoomCode}`)
+              }}
+            >
+              Redirect Me To File Transfer
+            </Button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -77,8 +123,11 @@ export default function ShareFile() {
           variant="link"
           className="text-4xl"
           onClick={() => {
-            // setState((prev) => ({...prev, isAdmin: true}))
-            if (socket) socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM)
+            socket.emit(
+              constants.EVENTS.GENERATE_AND_JOIN_ROOM,
+              constants.TYPE.CODE
+            )
+            updateState({isLoading: true})
           }}
         >
           Send
@@ -106,8 +155,13 @@ export default function ShareFile() {
             // @ts-expect-error
             const room = document.forms.roomForm?.room
               .value as unknown as string
-            if (socket)
-              socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM, room, true)
+            socket.emit(
+              constants.EVENTS.GENERATE_AND_JOIN_ROOM,
+              constants.TYPE.CODE,
+              room,
+              true
+            )
+            updateState({isLoading: true})
           }}
         >
           <Input

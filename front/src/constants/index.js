@@ -20,6 +20,11 @@ const constants = {
     LEAVE_ROOM: 'LEAVE_ROOM',
     MAKE_ADMIN: 'MAKE_ADMIN',
     INVALID_ROOM: 'INVALID_ROOM',
+    INVALID_ROOM_TYPE: 'INVALID_ROOM_TYPE',
+  },
+  TYPE: {
+    FILE: 'FILE',
+    CODE: 'CODE',
   },
   ALLOWED_FILE_FORMATS_HTML:
     '.jpg,.jpeg,.png,.gif,.svg,.mp3,.wav,.mp4,.avi,.pdf,.txt,.html,.css,.js,.jsx,.tsx,.py,.json,',
