@@ -9,7 +9,7 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "cd front && npm i & cd back && npm i",
+	"postCreateCommand": "bash install.sh && bash dev.sh",
 	// Configure tool-specific properties.
 	"customizations": {
 		// Configure properties specific to VS Code.

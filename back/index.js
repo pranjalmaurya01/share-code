@@ -134,4 +134,4 @@ io.on(events.CONNECTION, async (socket) => {
 	});
 });
 
-io.listen(3333);
+io.listen(process.env.SERVER_PORT ? +process.env.SERVER_PORT : 3333);

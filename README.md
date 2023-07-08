@@ -13,7 +13,7 @@ This is a file sharing application that allows users to share files in two modes
 ## Technologies Used
 
 -   Front-end: [Next.js](https://nextjs.org/), [shadcn-ui](https://ui.shadcn.com/)
--   Back-end: [Socket.IO](https://socket.io/)
+-   Back-end: [Socket.IO](https://socket.io/), [Redis](https://upstash.com/)
 
 ## Development Server Setup
 
@@ -26,7 +26,17 @@ Before proceeding, ensure that you have the following installed on your machine:
 -   [Node.js](https://nodejs.org/) (version 18 or above)
 -   [npm](https://www.npmjs.com/) (or [Yarn](https://yarnpkg.com/))
 
-### Setup Instructions
+Rename back/.env.sample to back/.env and enter your own REDIS_TOKEN from [Redis](https://upstash.com/)
+
+### Docker Setup Instructions
+
+1. VS Code will detect the `.devcontainer` folder and prompt you to reopen the project in the container. Click on the "Reopen in Container" button.
+
+2. VS Code will automatically build and configure the development environment based on the `.devcontainer` configuration. This ensures that all necessary dependencies and extensions are installed within the container.
+
+3. Once the container is up and running, development server will start automatically on ports (3000,3333).
+
+### Manual Setup Instructions
 
 1. Clone the repository:
 
