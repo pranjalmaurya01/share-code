@@ -38,6 +38,7 @@ export default function ShareFile() {
         updateState({inValidCode: true})
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId])
 
   useEffect(() => {

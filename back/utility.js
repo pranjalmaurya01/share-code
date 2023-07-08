@@ -40,6 +40,12 @@ export async function GENERATE_AND_JOIN_ROOM(
 		isAdmin
 	);
 	io.sockets.in(currentRoom).emit(events.GET_USERS, roomData[currentRoom]);
+	if (roomData[currentRoom].code) {
+		io.to(socket.id).emit(
+			events.GET_CHANGED_CODE,
+			roomData[currentRoom].code
+		);
+	}
 	await redis.set('roomData', roomData);
 }
 
