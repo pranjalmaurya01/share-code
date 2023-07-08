@@ -12,7 +12,7 @@ This is a file sharing application that allows users to share files in two modes
 
 ## Technologies Used
 
--   Front-end: [Next.js](https://nextjs.org/), [shadcn-ui](https://ui.shadcn.com/)
+-   Front-end: [Next.js](https://nextjs.org/), [shadcn-ui](https://ui.shadcn.com/), [Zustand](https://github.com/pmndrs/zustand)
 -   Back-end: [Socket.IO](https://socket.io/), [Redis](https://upstash.com/)
 
 ## Development Server Setup

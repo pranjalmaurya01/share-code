@@ -46,7 +46,6 @@ export default function DownloadFiles({
   useEffect(() => {
     ;(async () => {
       socket.on(constants.EVENTS.GET_FILE, (files: any) => {
-        console.log(files)
         setState((prev) => ({...prev, files}))
       })
     })()
