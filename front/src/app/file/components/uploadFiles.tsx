@@ -1,10 +1,11 @@
 'use client'
 import {Badge} from '@/components/ui/badge'
-import {Button} from '@/components/ui/button'
 import constants from '@/constants'
+import {roomDataI} from '@/constants/types'
+import {useRouter} from 'next/navigation'
 import {useEffect, useState} from 'react'
-import {CopyToClipboard} from 'react-copy-to-clipboard'
-import {roomDataI} from '../page'
+import CopyButton from './CopyButton'
+import FilesList from './FilesList'
 import UserAdminList from './UserAdminList'
 
 export default function UploadFiles({
@@ -16,6 +17,7 @@ export default function UploadFiles({
   room_id: string
   roomData: roomDataI
 }) {
+  const router = useRouter()
   const [state, setState] = useState<{
     files: HTMLInputElement[]
     copied: boolean
@@ -105,47 +107,19 @@ export default function UploadFiles({
           onChange={getPhoto}
         />
         <div className="absolute left-0 top-0 m-1">
-          <h3 className="text-xl">
-            Uploaded Files{' '}
-            <Badge variant="outline" className="font-light text-gray-500">
-              {socket.id}
-            </Badge>
-          </h3>
-          <br />
-          <ul className="ml-5 max-w-md space-y-1 text-gray-500 list-disc list-inside">
-            {state.files.map((e, i) => (
-              <li key={i}>{e.name}</li>
-            ))}
-          </ul>
+          <FilesList socket={socket} files={state.files} />
         </div>
-        <div className="absolute top-0 right-0 m-2">
-          <div className="flex">
-            <div className="flex justify-end mb-2">
-              {state.copied ? (
-                <p className="py-2 px-1 text-gray-300">Room Id Copied</p>
-              ) : (
-                <Button variant="outline" onClick={(e) => e.stopPropagation()}>
-                  <CopyToClipboard
-                    text={room_id}
-                    onCopy={() => {
-                      setTimeout(() => {
-                        setState((prev) => ({...prev, copied: true}))
-                      })
-                    }}
-                  >
-                    <p>Copy Room ID</p>
-                  </CopyToClipboard>
-                </Button>
-              )}
-            </div>
-            <div>
-              <UserAdminList
-                room_id={room_id}
-                isAdmin
-                admins={roomData.admins}
-                users={roomData.users}
-                socket={socket}
-              />
+        <div className="absolute bottom-0 left-0">
+          <div>
+            <UserAdminList
+              room_id={room_id}
+              isAdmin
+              admins={roomData.admins}
+              users={roomData.users}
+              socket={socket}
+            />
+            <div className="flex justify-center mt-5 mb-2">
+              <CopyButton />
             </div>
           </div>
         </div>

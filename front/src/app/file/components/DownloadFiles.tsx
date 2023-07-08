@@ -1,8 +1,9 @@
 'use client'
 import {Badge} from '@/components/ui/badge'
 import constants from '@/constants'
+import {roomDataI} from '@/constants/types'
 import {useEffect, useState} from 'react'
-import {roomDataI} from '../page'
+import CopyButton from './CopyButton'
 import UserAdminList from './UserAdminList'
 
 const recreateFileAndDownload = (fileData: any) => {
@@ -80,13 +81,16 @@ export default function DownloadFiles({
           </ul>
         </div>
       </div>
-      <div className="absolute top-0 right-0 m-2">
+      <div className="absolute bottom-0 left-0 m-2">
         <UserAdminList
           admins={roomData.admins}
           users={roomData.users}
           socket={socket}
           room_id={room_id}
         />
+        <div className="flex justify-center mt-5 mb-2">
+          <CopyButton />
+        </div>
       </div>
     </div>
   )

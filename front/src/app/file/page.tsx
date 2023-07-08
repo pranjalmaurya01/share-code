@@ -2,14 +2,12 @@
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import constants from '@/constants'
+import {roomDataI} from '@/constants/types'
+import useSocket from '@/stores/useSocket'
 import {useRouter, useSearchParams} from 'next/navigation'
 import {useEffect, useState} from 'react'
-import {io} from 'socket.io-client'
 import DownloadFiles from './components/DownloadFiles'
 import UploadFiles from './components/uploadFiles'
-
-let socket: any
-export type roomDataI = {users: string[]; admins: string[]}
 
 export default function ShareFile() {
   const [state, setState] = useState<{
@@ -25,6 +23,7 @@ export default function ShareFile() {
   })
   const router = useRouter()
   const params = useSearchParams()
+  const socket = useSocket((state) => state.socket)
 
   const updateState = (newValues: any) => {
     setState((prev) => ({...prev, ...newValues}))
@@ -40,30 +39,26 @@ export default function ShareFile() {
         updateState({inValidCode: true})
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId])
 
   useEffect(() => {
     ;(async () => {
-      if (!socket) {
-        socket = io(constants.baseUrl)
-        socket.on(constants.EVENTS.CONNECTION, () => {
-          console.log('connected')
-        })
-        socket.on(
-          constants.EVENTS.ROOM_JOINED,
-          (room_id: string, roomData: any, isAdmin: boolean) => {
-            router.push(`?room_id=${room_id}`)
-            updateState({isAdmin, roomData})
-          }
-        )
-        socket.on(constants.EVENTS.GET_USERS, (roomData: roomDataI) => {
-          updateState({roomData})
-        })
-        socket.on(constants.EVENTS.INVALID_ROOM, () => {
-          updateState({inValidCode: true})
-        })
-      }
+      socket.on(
+        constants.EVENTS.ROOM_JOINED,
+        (room_id: string, roomData: any, isAdmin: boolean) => {
+          router.push(`?room_id=${room_id}`)
+          updateState({isAdmin, roomData, isLoading: false})
+        }
+      )
+      socket.on(constants.EVENTS.GET_USERS, (roomData: roomDataI) => {
+        updateState({roomData})
+      })
+      socket.on(constants.EVENTS.INVALID_ROOM, () => {
+        updateState({inValidCode: true})
+      })
       if (roomId) {
+        updateState({isLoading: true})
         socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM, roomId)
       }
     })()
@@ -73,7 +68,7 @@ export default function ShareFile() {
   if (state.isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p>Generating New Room And Making You Admin</p>
+        <p className="text-2xl">Joining Room</p>
       </div>
     )
   }
@@ -85,8 +80,10 @@ export default function ShareFile() {
           variant="link"
           className="text-4xl"
           onClick={() => {
-            // setState((prev) => ({...prev, isAdmin: true}))
-            if (socket) socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM)
+            if (socket) {
+              updateState({isLoading: true})
+              socket.emit(constants.EVENTS.GENERATE_AND_JOIN_ROOM)
+            }
           }}
         >
           Send

@@ -1,8 +1,8 @@
 'use client'
 
 import UserAdminList from '@/app/file/components/UserAdminList'
-import {roomDataI} from '@/app/file/page'
 import constants from '@/constants'
+import {roomDataI} from '@/constants/types'
 import {Editor} from '@monaco-editor/react'
 import {useEffect, useState} from 'react'
 import CopyButton from './CopyButton'
@@ -94,7 +94,7 @@ export default function CodeEditor({
               }}
             />
           </div>
-          <div className="">
+          <div>
             <UserAdminList
               className="!ml-0 truncate pr-2"
               admins={roomData.admins}

@@ -29,11 +29,11 @@ export default function CopyButton({
             <p className="text-gray-400 py-2">Copied to clipboard</p>
           ) : (
             <CopyToClipboard
-              text={roomId}
+              text={location.href}
               onCopy={() => setState((prev) => ({...prev, copied: true}))}
             >
               <Button variant="outline">
-                Copy Room ID
+                Copy Room Link
                 <Badge
                   variant="outline"
                   className="font-light text-gray-500 ml-2"
