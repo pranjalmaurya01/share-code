@@ -8,9 +8,9 @@ pipeline {
       }
     }
 
-    stage('') {
+    stage('error') {
       steps {
-        nvm(version: 'v0.39.3') {
+        nvm(version: 'v20.4.0') {
           sh 'node --version'
         }
 
