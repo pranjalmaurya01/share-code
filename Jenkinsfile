@@ -8,10 +8,10 @@ pipeline {
       }
     }
 
-    stage('error') {
+    stage('Node Setup') {
       steps {
         nvm(version: 'v20.4.0') {
-          sh 'node --version'
+          sh 'bash install.sh'
         }
 
       }
