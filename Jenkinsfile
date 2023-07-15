@@ -8,7 +8,7 @@ pipeline {
       }
     }
 
-    stage('Node Setup') {
+    stage('Install Dep') {
       steps {
         nvm(version: 'v20.4.0') {
           sh 'bash install.sh'
@@ -19,25 +19,9 @@ pipeline {
 
     stage('Build Frontend') {
       steps {
-        sh '''cd front
+        nvm(version: 'v20.4.0') {
+          sh '''cd front
 npm run build'''
-      }
-    }
-
-    stage('Run Frontend') {
-      parallel {
-        stage('Run Frontend') {
-          steps {
-            sh '''cd front
-npm run start'''
-          }
-        }
-
-        stage('Run Backend') {
-          steps {
-            sh '''cd back
-npm run dev'''
-          }
         }
 
       }
