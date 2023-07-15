@@ -17,5 +17,31 @@ pipeline {
       }
     }
 
+    stage('Build Frontend') {
+      steps {
+        sh '''cd front
+npm run build'''
+      }
+    }
+
+    stage('Run Frontend') {
+      parallel {
+        stage('Run Frontend') {
+          steps {
+            sh '''cd front
+npm run start'''
+          }
+        }
+
+        stage('Run Backend') {
+          steps {
+            sh '''cd back
+npm run dev'''
+          }
+        }
+
+      }
+    }
+
   }
 }
