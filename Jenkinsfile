@@ -10,7 +10,7 @@ pipeline {
 
     stage('NVM') {
       steps {
-        sh 'nvm --version'
+        sh 'node --version'
       }
     }
 
